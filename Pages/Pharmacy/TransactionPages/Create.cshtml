@@ -1,0 +1,285 @@
+﻿@page
+@model SandboxRazor.Pages.Pharmacy.TransactionPages.CreateModel
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Create";
+}
+
+<h1 class="my-4">Transaction Create</h1>
+
+<!-- Bootstrap Tabs for Transaction and Transaction Detail -->
+<ul class="nav nav-tabs" id="transactionTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <a class="nav-link active" id="transaction-tab" data-bs-toggle="tab" href="#transaction" role="tab" aria-controls="transaction" aria-selected="true">Transaction</a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link" id="transactionDetail-tab" data-bs-toggle="tab" href="#transactionDetail" role="tab" aria-controls="transactionDetail" aria-selected="false">Transaction Details</a>
+    </li>
+</ul>
+<div class="tab-content" id="transactionTabsContent">
+    <!-- Transaction Tab -->
+    <div class="tab-pane fade show active" id="transaction" role="tabpanel" aria-labelledby="transaction-tab">
+        <h4>Transaction Information</h4>
+        <hr />
+        <div class="row">
+            <div class="col-md-6">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="form-group">
+                        <label asp-for="Transaction.DocumentNumber" class="control-label">No. Dokumen</label>
+                        <input asp-for="Transaction.DocumentNumber" class="form-control" disabled />
+                        <span asp-validation-for="Transaction.DocumentNumber" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Transaction.DocumentDate" class="control-label">Tgl. Dokumen</label>
+                        <input id="documentDateInput" asp-for="Transaction.DocumentDate" type="date" class="form-control" />
+                        <span asp-validation-for="Transaction.DocumentDate" class="text-danger"></span>
+                    </div>
+                    <!-- Hidden Field for DocumentDate -->
+                    <input type="hidden" id="hiddenDocumentDate" name="hiddenDocumentDate" value="@Model.Transaction.DocumentDate" />
+                    <br />
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Detail Tab -->
+    <div class="tab-pane fade" id="transactionDetail" role="tabpanel" aria-labelledby="transactionDetail-tab">
+        <h4>Transaction Details</h4>
+        <hr />
+        <div class="row">
+            <div class="col-md-12">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <!-- Transaction Details Table/Grid -->
+                    <table id="transactionDetailsTable" class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < Model.Transaction.TransactionDetails.Count; i++)
+                            {
+                                <tr>
+                                    <td>
+                                        <select asp-for="TransactionDetails[@i].MedicationId" class="form-control">
+                                            <option value="" selected disabled>Select an Item</option>
+                                            @foreach (var Medication in ViewBag.MedicationList)
+                                            {
+                                                <option value="@Medication.Value">@Medication.Text</option>
+                                            }
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input asp-for="TransactionDetails[@i].Qty" class="form-control" type="number" min="1" required />
+                                    </td>
+                                    <td>
+                                        <input asp-for="TransactionDetails[@i].Price" class="form-control" type="number" step="0.01" min="0" required />
+                                    </td>
+
+                                    <!-- Remove Row Button with Icon -->
+                                    <button type="button" class="btn btn-danger remove-row">
+                                        <i class="fas fa-trash-alt"></i> Remove
+                                    </button>
+
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <!-- Add New Row Button with Icon -->
+                    <button type="button" id="addRow" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Add Row
+                    </button>
+
+                    <br /><br />
+
+                    <!-- Submit Button -->
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<br />
+<br />
+
+<!-- Submit Button -->
+<div class="form-group">
+    <a class="btn btn-secondary" asp-page="./Index">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+</div>
+
+<!-- Hidden Medication List for JavaScript -->
+<div id="medicationList" style="display:none;">
+    @if (ViewBag.MedicationList != null)
+    {
+        @foreach (var medication in ViewBag.MedicationList)
+        {
+            <span data-value="@medication.Value" data-text="@medication.Text"></span>
+        }
+    }
+    else
+    {
+        <p>No medications available.</p>
+    }
+</div>
+
+<!-- Modal for Status Message -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- The message will be dynamically set here by JavaScript -->
+                <p id="statusMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Get the date input field and the hidden input field
+            var dateInput = document.getElementById('documentDateInput');
+            var hiddenDateInput = document.getElementById('hiddenDocumentDate');
+
+            if (dateInput && hiddenDateInput) {
+                // Set the initial value of the hidden field to match the date input
+                hiddenDateInput.value = dateInput.value;
+
+                // Add event listener for 'change' event on the date input
+                dateInput.addEventListener('change', function () {
+                    // Set the hidden field value when the date is changed
+                    hiddenDateInput.value = dateInput.value;
+                    console.log("Selected Date: " + dateInput.value);  // For debugging
+                });
+            }
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            // Counter for row index
+            var rowIndex = 0;
+
+            // Function to update the available medications in the select dropdown
+            function updateMedicationOptions() {
+                // Get selected medications from the table rows
+                var selectedMedications = [];
+                $('#transactionDetailsTable tbody tr').each(function () {
+                    var medicationId = $(this).find('select').val();
+                    if (medicationId) {
+                        selectedMedications.push(medicationId);
+                    }
+                });
+
+                // Update options for each row's select dropdown
+                $('#transactionDetailsTable tbody tr').each(function () {
+                    var select = $(this).find('select');
+                    select.find('option').each(function () {
+                        var option = $(this);
+                        var optionValue = option.val();
+
+                        // Show options that are not selected yet in any row
+                        if (selectedMedications.includes(optionValue)) {
+                            option.prop('disabled', true); // Disable already selected options
+                        } else {
+                            option.prop('disabled', false); // Enable available options
+                        }
+                    });
+                });
+            }
+
+            // Add new row to table
+            $('#addRow').click(function () {
+                rowIndex++;  // Increment the row index
+
+                // Check if quantity and price fields are not empty before adding the row
+                var quantity = $('#quantityInput').val();
+                var price = $('#priceInput').val();
+
+                if (quantity === '' || price === '') {
+                    // Set the message for the modal
+                    var message = 'Please fill in both quantity and price before adding a new row.';
+
+                    // Dynamically set the message inside the modal
+                    $('#statusMessage').text(message);
+
+                    // Show the modal with the message
+                    $('#statusModal').modal('show');  // Show the modal
+
+                    return; // Prevent row addition
+                }
+
+                var newRow = `
+                                            <tr>
+                                                <td>
+                                                    <select name="TransactionDetails[${rowIndex}].MedicationId" class="form-control" required>
+                                                        <option value="" selected disabled>Select an Item</option>
+                                    `;
+
+                // Fetch medications from hidden div and append them to the select dropdown
+                $('#medicationList span').each(function () {
+                    var value = $(this).data('value');
+                    var text = $(this).data('text');
+                    newRow += `<option value="${value}">${text}</option>`;
+                });
+
+                newRow += `
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input name="TransactionDetails[${rowIndex}].Qty" class="form-control" type="number" min="1" required id="quantityInput" />
+                                                </td>
+                                                <td>
+                                                    <input name="TransactionDetails[${rowIndex}].Price" class="form-control" type="number" step="0.01" min="0" required id="priceInput" />
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-danger remove-row">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>`;
+
+                // Append the new row to the table
+                $('#transactionDetailsTable tbody').append(newRow);
+
+                // Update the medication options for all rows after adding a new one
+                updateMedicationOptions();
+            });
+
+            // Remove row from table
+            $(document).on('click', '.remove-row', function () {
+                $(this).closest('tr').remove();
+                // Update the medication options after removing a row
+                updateMedicationOptions();
+            });
+        });
+    </script>
+}
