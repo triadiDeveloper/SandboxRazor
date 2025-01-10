@@ -18,6 +18,7 @@ namespace SandboxRazor.Pages.Identity.ApplicationUserLoginPages
 
         [BindProperty]
         public ApplicationUser ApplicationUser { get; set; }
+        public bool LoginFailed { get; set; }
 
         public LoginModel(SandboxRazor.Models.PersistenceDbContext context, IPasswordHasher<ApplicationUser> passwordHasher)
         {
@@ -54,6 +55,7 @@ namespace SandboxRazor.Pages.Identity.ApplicationUserLoginPages
             if (passwordValid == PasswordVerificationResult.Failed)
             {
                 ModelState.AddModelError(string.Empty, "Invalid username or password.");
+                LoginFailed = true; // Set to true if validation fails
                 return Page();
             }
 
@@ -73,7 +75,7 @@ namespace SandboxRazor.Pages.Identity.ApplicationUserLoginPages
             // Sign in the user
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
 
-            return RedirectToPage("/Index"); // Redirect to home page or dashboard after login
+            return RedirectToPage("/Dashboard"); // Redirect to home page or dashboard after login
         }
     }
 }

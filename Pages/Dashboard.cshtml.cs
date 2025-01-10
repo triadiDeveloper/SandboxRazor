@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SandboxRazor.Pages
 {
-    public class IndexModel : PageModel
+    public class DashboardModel : PageModel
     {
-        private readonly ILogger<IndexModel> _logger;
+        private readonly ILogger<DashboardModel> _logger;
         private readonly SandboxRazor.Models.PersistenceDbContext _context;
         private readonly CurrentUserHelper _currentUserHelper;
 
-        public IndexModel(ILogger<IndexModel> logger, Models.PersistenceDbContext context, CurrentUserHelper currentUserHelper)
+        public DashboardModel(ILogger<DashboardModel> logger, Models.PersistenceDbContext context, CurrentUserHelper currentUserHelper)
         {
             _logger = logger;
             _context = context;

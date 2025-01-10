@@ -1,30 +1,18 @@
-using SandboxRazor.Extensions;
-using SandboxRazor.Helper;
 using SandboxRazor.Models;
-using SandboxRazor.Models.Identity;
-using SandboxRazor.Service;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using SandboxRazor.Service.BC365;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Register CurrentUserHelper
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<CurrentUserHelper>();
+builder.Services.AddLogging();
 
-builder.Services.AddLogging(); // Ensures loggers for all types are available
-builder.Services.AddSingleton<RestSharpHelper>();
-builder.Services.AddSingleton<CustomerService>();
+// Add services to the container
+builder.Services.AddPersistenceServices();
 
-
-
-// Add other services or dependencies you need
-builder.Services.AddScoped<IEntityServiceFactory, EntityServiceFactory>(); 
-
-// Add services to the container.
+// Add services to the container
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 
 // Configure SQL Server Configuration
@@ -35,12 +23,11 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options =>
     {
         options.LoginPath = "/Identity/ApplicationUserLoginPages/Login";
-        options.LogoutPath = "/LandingPages"; // Set logout URL
+        options.LogoutPath = "/Identity/ApplicationUserLoginPages/Logout";
         options.AccessDeniedPath = "/Identity/ApplicationUserLoginPages/AccessDenied";
         options.ExpireTimeSpan = TimeSpan.FromMinutes(30);  // Expiry time
         options.SlidingExpiration = true;  // Enable sliding expiration
     });
-
 
 builder.Services.AddAuthorization(options =>
 {
@@ -49,15 +36,10 @@ builder.Services.AddAuthorization(options =>
         .Build();
 });
 
-builder.Services.AddScoped<IPasswordHasher<ApplicationUser>, PasswordHasher<ApplicationUser>>();
-
 var app = builder.Build();
 
 // Apply migrations
 await PersistenceServiceRegistration.ApplyMigrations(app.Services);
-
-// Register the custom middleware
-app.UseMiddleware<NavigationMiddleware>();
 
 // Seed Navigations Menu
 await app.ConfigureSeedNavigations();
@@ -69,13 +51,16 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+    app.UseExceptionHandler("/Error");
+    app.UseHsts(); // Use HSTS in production
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
+// Register custom middlewares
+app.UseCustomMiddlewares();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -84,8 +69,6 @@ app.UseAuthorization();
 app.MapRazorPages();
 
 // Ensure the login page is the fallback when no other route matches
-// Only do this if you really want a fallback to the Login page
-// Otherwise, remove this line if it's unnecessary
-app.MapFallbackToPage("/LandingPages");
+app.MapFallbackToPage("/Identity/ApplicationUserLoginPages/Login");
 
 app.Run();

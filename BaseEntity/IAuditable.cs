@@ -9,7 +9,8 @@ public interface IAuditable
     string? ModifiedUser { get; set; }
     DateTime? ModifiedDate { get; set; }
 
-    void SetAuditFields(CurrentUserHelper currentUserHelper);
+    void SetAuditCreatedFields(CurrentUserHelper currentUserHelper);
+    void SetAuditModifiedFields(CurrentUserHelper currentUserHelper);
 }
 public interface INotAuditable
 {

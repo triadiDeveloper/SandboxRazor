@@ -47,11 +47,16 @@ public abstract class BaseCodeNameGuid : BaseIdGUID, IDefaultColumn, INote, IAct
     public byte[]? Version { get; set; }
 
     // To be set automatically by the current user helper
-    public void SetAuditFields(CurrentUserHelper currentUserHelper)
+    public void SetAuditCreatedFields(CurrentUserHelper currentUserHelper)
     {
         string currentUser = currentUserHelper.GetCurrentUserName();
         CreatedUser = currentUser;
+    }
+    public void SetAuditModifiedFields(CurrentUserHelper currentUserHelper)
+    {
+        string currentUser = currentUserHelper.GetCurrentUserName();
         ModifiedUser = currentUser;
+        ModifiedDate = DateTime.Now;
     }
 }
 
@@ -85,11 +90,16 @@ public abstract class BaseCodeName : BaseIdInt, IDefaultColumn, INote, IActivata
     public byte[]? Version { get; set; }
 
     // To be set automatically by the current user helper
-    public void SetAuditFields(CurrentUserHelper currentUserHelper)
+    public void SetAuditCreatedFields(CurrentUserHelper currentUserHelper)
     {
         string currentUser = currentUserHelper.GetCurrentUserName();
         CreatedUser = currentUser;
+    }
+    public void SetAuditModifiedFields(CurrentUserHelper currentUserHelper)
+    {
+        string currentUser = currentUserHelper.GetCurrentUserName();
         ModifiedUser = currentUser;
+        ModifiedDate = DateTime.Now;
     }
 }
 
@@ -114,11 +124,16 @@ public abstract class BaseDomainDetail : IIdentityInt, IActivatable, ISoftDeleta
     public byte[]? Version { get; set; }
 
     // To be set automatically by the current user helper
-    public void SetAuditFields(CurrentUserHelper currentUserHelper)
+    public void SetAuditCreatedFields(CurrentUserHelper currentUserHelper)
     {
         string currentUser = currentUserHelper.GetCurrentUserName();
         CreatedUser = currentUser;
+    }
+    public void SetAuditModifiedFields(CurrentUserHelper currentUserHelper)
+    {
+        string currentUser = currentUserHelper.GetCurrentUserName();
         ModifiedUser = currentUser;
+        ModifiedDate = DateTime.Now;
     }
 }
 
@@ -141,11 +156,16 @@ public abstract class BaseDomainDetailGuid : BaseIdGUID, IActivatable, ISoftDele
     public byte[]? Version { get; set; }
 
     // To be set automatically by the current user helper
-    public void SetAuditFields(CurrentUserHelper currentUserHelper)
+    public void SetAuditCreatedFields(CurrentUserHelper currentUserHelper)
     {
         string currentUser = currentUserHelper.GetCurrentUserName();
         CreatedUser = currentUser;
+    }
+    public void SetAuditModifiedFields(CurrentUserHelper currentUserHelper)
+    {
+        string currentUser = currentUserHelper.GetCurrentUserName();
         ModifiedUser = currentUser;
+        ModifiedDate = DateTime.Now;
     }
 }
 
@@ -168,11 +188,16 @@ public abstract class BaseDomainDeep : IIdentityInt, IAudited, IVersion, IAudita
 
 
     // To be set automatically by the current user helper
-    public void SetAuditFields(CurrentUserHelper currentUserHelper)
+    public void SetAuditCreatedFields(CurrentUserHelper currentUserHelper)
     {
         string currentUser = currentUserHelper.GetCurrentUserName();
         CreatedUser = currentUser;
+    }
+    public void SetAuditModifiedFields(CurrentUserHelper currentUserHelper)
+    {
+        string currentUser = currentUserHelper.GetCurrentUserName();
         ModifiedUser = currentUser;
+        ModifiedDate = DateTime.Now;
     }
 }
 
@@ -195,10 +220,15 @@ public abstract class BaseDomainDeepGuid : IIdentityGuid, IAudited, IVersion, IA
 
 
     // To be set automatically by the current user helper
-    public void SetAuditFields(CurrentUserHelper currentUserHelper)
+    public void SetAuditCreatedFields(CurrentUserHelper currentUserHelper)
     {
         string currentUser = currentUserHelper.GetCurrentUserName();
         CreatedUser = currentUser;
+    }
+    public void SetAuditModifiedFields(CurrentUserHelper currentUserHelper)
+    {
+        string currentUser = currentUserHelper.GetCurrentUserName();
         ModifiedUser = currentUser;
+        ModifiedDate = DateTime.Now;
     }
 }

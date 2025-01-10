@@ -1,20 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using SandboxRazor.Models.Organization;
 using SandboxRazor.Helper;
+using SandboxRazor.Service;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace SandboxRazor.Pages.Organization.CompanyPages
 {
     public class CreateModel : PageModel
     {
-        private readonly SandboxRazor.Models.PersistenceDbContext _context;
+        private readonly EntityService<Company> _entityService;
+
         public MessageHelper MessageHelper { get; set; } // MessageHelper for status messages
 
-        // Initialize the context and the helper via Dependency Injection
-        public CreateModel(SandboxRazor.Models.PersistenceDbContext context)
+        // Initialize the services via Dependency Injection
+        public CreateModel(SandboxRazor.Models.PersistenceDbContext context, CurrentUserHelper currentUserHelper)
         {
-            _context = context;
             MessageHelper = new MessageHelper(); // Ensure MessageHelper is initialized
+            _entityService = new EntityService<Company>(currentUserHelper, context);
         }
 
         [BindProperty]
@@ -22,6 +24,7 @@ namespace SandboxRazor.Pages.Organization.CompanyPages
 
         public IActionResult OnGet()
         {
+            // Add your logic here for OnGet
             return Page();
         }
 
@@ -37,7 +40,7 @@ namespace SandboxRazor.Pages.Organization.CompanyPages
             }
 
             // Check if the company code already exists (using the generic duplicate checker)
-            var isCodeDuplicate = await CheckCodeUniqueHelper.IsDuplicateAsync<Company>(_context, "Code", Company.Code);
+            var isCodeDuplicate = await _entityService.IsDuplicateAsync("Code", Company.Code);
 
             if (isCodeDuplicate)
             {
@@ -48,20 +51,14 @@ namespace SandboxRazor.Pages.Organization.CompanyPages
 
             try
             {
-                // Add the new company if no duplicate code is found
-                _context.Companies.Add(Company);
-                await _context.SaveChangesAsync();
-
-                // If creation is successful, set a success message
+                await _entityService.CreateEntityAsync(Company);
                 MessageHelper.SetSuccessMessage("Company created successfully!");
-                return RedirectToPage("./Index"); // Redirect after successful creation
+                return RedirectToPage("./Index");
             }
             catch (Exception ex)
             {
-                // Log the exception (optional) and set a failure message
-                // Here, you can log the exception to a file, or use a logging service like Serilog or NLog
-                MessageHelper.SetErrorMessage($"An error occurred while creating the company. Details: {ex.Message}");
-                return Page(); // Return the page with an error message
+                MessageHelper.SetErrorMessage($"An error occurred: {ex.Message}");
+                return Page();
             }
         }
     }

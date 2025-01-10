@@ -3,18 +3,17 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SandboxRazor.Models.Organization;
 using SandboxRazor.Helper;
+using SandboxRazor.Service;
 
 namespace SandboxRazor.Pages.Organization.CompanyPages
 {
     public class EditModel : PageModel
     {
-        private readonly SandboxRazor.Models.PersistenceDbContext _context;
-        private readonly CurrentUserHelper _currentUserHelper;
+        private readonly EntityService<Company> _entityService;
 
         public EditModel(SandboxRazor.Models.PersistenceDbContext context, CurrentUserHelper currentUserHelper)
         {
-            _context = context;
-            _currentUserHelper = currentUserHelper;
+            _entityService = new EntityService<Company>(currentUserHelper, context);
         }
 
         [BindProperty]
@@ -27,7 +26,7 @@ namespace SandboxRazor.Pages.Organization.CompanyPages
                 return NotFound();
             }
 
-            var company = await _context.Companies.FirstOrDefaultAsync(m => m.Id == id);
+            var company = await _entityService.GetEntityByIdAsync(id.Value);
             if (company == null)
             {
                 return NotFound();
@@ -37,8 +36,6 @@ namespace SandboxRazor.Pages.Organization.CompanyPages
             return Page();
         }
 
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
@@ -46,27 +43,23 @@ namespace SandboxRazor.Pages.Organization.CompanyPages
                 return Page();
             }
 
-            var results = await _context.Companies.FirstOrDefaultAsync(m => m.Id == Company.Id);
-            if (results == null)
+            var existingCompany = await _entityService.GetEntityByIdAsync(Company.Id);
+            if (existingCompany == null)
             {
                 return NotFound();
             }
 
-            results.Code = Company.Code;
-            results.Name = Company.Name;
-            results.Note = Company.Note;
-            results.ModifiedUser = _currentUserHelper.GetCurrentUserName();
-            results.ModifiedDate = DateTime.Now;
-
-            _context.Attach(results).State = EntityState.Modified;
+            existingCompany.Code = Company.Code;
+            existingCompany.Name = Company.Name;
+            existingCompany.Note = Company.Note;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _entityService.UpdateEntityAsync(existingCompany);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!CompanyExists(Company.Id))
+                if (!await _entityService.EntityExistsAsync(Company.Id))
                 {
                     return NotFound();
                 }
@@ -77,11 +70,6 @@ namespace SandboxRazor.Pages.Organization.CompanyPages
             }
 
             return RedirectToPage("./Index");
-        }
-
-        private bool CompanyExists(int id)
-        {
-            return _context.Companies.Any(e => e.Id == id);
         }
     }
 }

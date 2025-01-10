@@ -1,17 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 using SandboxRazor.Models.Organization;
+using SandboxRazor.Service;
 
 namespace SandboxRazor.Pages.Organization.CompanyPages
 {
     public class DetailsModel : PageModel
     {
-        private readonly SandboxRazor.Models.PersistenceDbContext _context;
+        private readonly EntityService<Company> _entityService;
 
-        public DetailsModel(SandboxRazor.Models.PersistenceDbContext context)
+        public DetailsModel(EntityService<Company> entityService)
         {
-            _context = context;
+            _entityService = entityService;
         }
 
         public Company Company { get; set; } = default!;
@@ -23,7 +23,7 @@ namespace SandboxRazor.Pages.Organization.CompanyPages
                 return NotFound();
             }
 
-            var company = await _context.Companies.FirstOrDefaultAsync(m => m.Id == id);
+            var company = await _entityService.GetEntityByIdAsync(id.Value);
             if (company == null)
             {
                 return NotFound();

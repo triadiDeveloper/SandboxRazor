@@ -1,18 +1,18 @@
 ﻿using SandboxRazor.Helper;
 using SandboxRazor.Models.Organization;
-using Microsoft.AspNetCore.Mvc;
+using SandboxRazor.Service;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
 namespace SandboxRazor.Pages.Organization.CompanyPages
 {
     public class IndexModel : PageModel
     {
-        private readonly SandboxRazor.Models.PersistenceDbContext _context;
+        private readonly EntityService<Company> _entityService;
 
-        public IndexModel(SandboxRazor.Models.PersistenceDbContext context)
+        public IndexModel(EntityService<Company> entityService)
         {
-            _context = context;
+            _entityService = entityService;
         }
 
         [BindProperty(SupportsGet = true)]
@@ -25,19 +25,25 @@ namespace SandboxRazor.Pages.Organization.CompanyPages
 
         public async Task OnGetAsync(int pageNumber = 1)
         {
-            var companies = _context.Companies.AsQueryable();
-
-            // Filter based on search query if provided
-            if (!string.IsNullOrEmpty(SearchQuery))
-            {
-                companies = companies.Where(c => c.Name.Contains(SearchQuery) || c.Code.Contains(SearchQuery));
-            }
-
             var pageSize = 10;
-            TotalPages = (int)Math.Ceiling(await companies.CountAsync() / (double)pageSize);
-            CurrentPage = pageNumber;
 
-            Company = await PaginatedListHelper<Company>.CreateAsync(companies, pageNumber, pageSize);
+            // Use the EntityService to get filtered and paginated data
+            Company = await _entityService.GetPaginatedAndFilteredAsync(
+                query =>
+                {
+                    if (!string.IsNullOrEmpty(SearchQuery))
+                    {
+                        query = query.Where(c => c.Name.Contains(SearchQuery) || c.Code.Contains(SearchQuery));
+                    }
+                    return query;
+                },
+                pageNumber,
+                pageSize
+            );
+
+            // Set pagination details
+            CurrentPage = pageNumber;
+            TotalPages = Company.TotalPages;
         }
     }
 }

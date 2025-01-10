@@ -1,69 +1,179 @@
 ﻿@page
 @model SandboxRazor.Pages.Identity.ApplicationUserLoginPages.LoginModel
 @{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Welcome | Login";
+    bool loginFailed = Model.LoginFailed; // Assuming you have a `LoginFailed` property in your model.
 }
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
 <link href="~/css/login-page.css" rel="stylesheet" />
 <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-<link rel="stylesheet" href="~/SandboxRazor.styles.css" asp-append-version="true" />
-<!-- Add this in the <head> section of your layout file -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
-<!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Bootstrap JS (requires jQuery) -->
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 
-<!-- Container for centering the login card -->
-<div class="login-container d-flex justify-content-center align-items-center vh-100">
-    <div class="login-card p-4 shadow-lg rounded">
-        <div class="text-center">
-            <h3 class="mb-4">Welcome Back</h3>
+<style>
+    /* Modern Background with Blue Gradient Animation */
+    .landing-login-section {
+        background: linear-gradient(-45deg, #1e3a5f, #4a90e2, #67baf6, #2b5876);
+        background-size: 400% 400%;
+        animation: gradientShift 8s ease infinite;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* Glassmorphic Card */
+    .form-card {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Input Fields with White Text */
+    .form-control {
+        border-radius: 30px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        background-color: rgba(255, 255, 255, 0.2); /* Slightly transparent background */
+        color: #fff; /* White text color */
+        border: none;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.7); /* Lighter white for placeholder text */
+        }
+
+        .form-control:focus {
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.3); /* Slightly brighter on focus */
+            color: #fff; /* Ensure text stays white on focus */
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.6);
+        }
+
+        .form-label {
+            color: #fff; /* Set font color to white */
+            font-weight: 500; /* Optional: Adjust font weight for better readability */
+        }
+
+
+    /* Buttons */
+    .btn-primary, .btn-success {
+        background: linear-gradient(to right, #1e3a5f, #4a90e2);
+        border: none;
+        border-radius: 30px;
+        padding: 0.75rem 1rem;
+        font-size: 1.1rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .btn-primary:hover, .btn-success:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Typography */
+    .display-4 {
+        font-weight: 600;
+        font-size: 2.5rem;
+        color: #fff;
+    }
+
+    .lead {
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.25rem;
+    }
+</style>
+
+<!-- Landing and Login/Sign Up Section -->
+<div class="landing-login-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <!-- Welcome Section -->
+            <div class="col-md-6 text-center text-white mb-5">
+                <h1 class="display-4">Welcome Back!</h1>
+                <p class="lead">Discover a world of possibilities. Log in or sign up to get started!</p>
+            </div>
+            <!-- Login Form Card -->
+            <div class="col-md-6 form-card">
+                <ul class="nav nav-tabs mb-4" id="authTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab" aria-controls="login" aria-selected="true">Login</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup" type="button" role="tab" aria-controls="signup" aria-selected="false">Sign Up</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="authTabsContent">
+                    <!-- Login Tab -->
+                    <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+                        <form method="post">
+                            @Html.AntiForgeryToken()
+                            <div class="form-group mb-3">
+                                <label for="UserName" class="form-label">Username</label>
+                                <input asp-for="ApplicationUser.UserName" class="form-control" id="UserName" placeholder="Enter your username" required />
+                                <span asp-validation-for="ApplicationUser.UserName" class="text-danger"></span>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="PasswordOwn" class="form-label">Password</label>
+                                <input asp-for="ApplicationUser.PasswordOwn" type="password" class="form-control" id="PasswordOwn" placeholder="Enter your password" required />
+                                <span asp-validation-for="ApplicationUser.PasswordOwn" class="text-danger"></span>
+                            </div>
+                            <div class="form-group text-center">
+                                <button type="submit" class="btn btn-primary w-100">Login</button>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- Sign Up Tab -->
+                    <div class="tab-pane fade" id="signup" role="tabpanel" aria-labelledby="signup-tab">
+                        <form method="post" action="/Account/Register">
+                            <div class="form-group mb-3">
+                                <label for="NewUserName" class="form-label">Username</label>
+                                <input type="text" name="NewUserName" class="form-control" id="NewUserName" placeholder="Choose a username" required />
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="Email" class="form-label">Email</label>
+                                <input type="email" name="Email" class="form-control" id="Email" placeholder="Enter your email" required />
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="NewPassword" class="form-label">Password</label>
+                                <input type="password" name="NewPassword" class="form-control" id="NewPassword" placeholder="Choose a password" required />
+                            </div>
+                            <div class="form-group text-center">
+                                <button type="submit" class="btn btn-success w-100">Sign Up</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
+</div>
 
-        <!-- Login Form -->
-        <form method="post">
-            @Html.AntiForgeryToken()
-            <!-- Username Field -->
-            <div class="form-group">
-                <label for="UserName" class="sr-only">Username</label>
-                <input asp-for="ApplicationUser.UserName" 
-                       class="form-control form-control-lg" 
-                       id="UserName" 
-                       placeholder="Username" 
-                       required />
-                <span asp-validation-for="ApplicationUser.UserName" class="text-danger"></span>
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
+    <div id="errorToast" class="toast align-items-center text-bg-danger border-0 animate__animated animate__fadeInUp" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                Invalid username or password. Please try again.
             </div>
-
-            <br />
-
-            <!-- Password Field -->
-            <div class="form-group">
-                <label for="PasswordOwn" class="sr-only">Password</label>
-                <input asp-for="ApplicationUser.PasswordOwn" 
-                       type="password" 
-                       class="form-control form-control-lg" 
-                       id="PasswordOwn" 
-                       placeholder="Password" 
-                       required />
-                <span asp-validation-for="ApplicationUser.PasswordOwn" class="text-danger"></span>
-            </div>
-
-            <br />
-
-            <!-- Submit Button -->
-            <div class="form-group text-center">
-                <button type="submit" class="btn btn-primary btn-lg w-100">Login</button>
-            </div>
-        </form>
-
-        <!-- Sign Up / Forgot Password Links -->
-        <div class="d-flex justify-content-between mt-3">
-            <a href="/Account/Register" class="small">Don't have an account? Sign up</a>
-            <a href="/Account/ForgotPassword" class="small">Forgot Password?</a>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
 </div>
@@ -73,11 +183,29 @@
 <script src="~/js/site.js" asp-append-version="true"></script>
 
 <script>
-    // Prevent back navigation in browser
-    if (window.history && window.history.pushState) {
-        window.history.pushState('forward', null, window.location.href);
-        window.onpopstate = function () {
-            window.history.forward();
-        };
+    $(document).ready(function () {
+        // Trigger the toast notification if loginFailed is true
+    @if (loginFailed)
+    {
+        <text>
+                        var toastElement = document.getElementById('errorToast');
+            var toast = new bootstrap.Toast(toastElement);
+            toast.show();
+        </text>
     }
+        });
+</script>
+
+<script>
+    // Disable browser back and forward navigation
+    (function () {
+        // Push a state to the browser's history
+        window.history.pushState(null, document.title, window.location.href);
+
+        // Listen for the popstate event
+        window.addEventListener('popstate', function (event) {
+            // Prevent navigating back
+            window.history.pushState(null, document.title, window.location.href);
+        });
+    })();
 </script>

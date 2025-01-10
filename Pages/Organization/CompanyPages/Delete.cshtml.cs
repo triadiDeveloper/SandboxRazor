@@ -1,17 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 using SandboxRazor.Models.Organization;
+using SandboxRazor.Service;
 
 namespace SandboxRazor.Pages.Organization.CompanyPages
 {
     public class DeleteModel : PageModel
     {
-        private readonly SandboxRazor.Models.PersistenceDbContext _context;
+        private readonly EntityService<Company> _entityService;
 
-        public DeleteModel(SandboxRazor.Models.PersistenceDbContext context)
+        public DeleteModel(EntityService<Company> entityService)
         {
-            _context = context;
+            _entityService = entityService;
         }
 
         [BindProperty]
@@ -24,7 +24,7 @@ namespace SandboxRazor.Pages.Organization.CompanyPages
                 return NotFound();
             }
 
-            var company = await _context.Companies.FirstOrDefaultAsync(m => m.Id == id);
+            var company = await _entityService.GetEntityByIdAsync(id.Value);
 
             if (company == null)
             {
@@ -44,13 +44,7 @@ namespace SandboxRazor.Pages.Organization.CompanyPages
                 return NotFound();
             }
 
-            var company = await _context.Companies.FindAsync(id);
-            if (company != null)
-            {
-                Company = company;
-                _context.Companies.Remove(Company);
-                await _context.SaveChangesAsync();
-            }
+            await _entityService.DeleteEntityAsync(id.Value);
 
             return RedirectToPage("./Index");
         }
